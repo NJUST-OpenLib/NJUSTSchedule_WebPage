@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <!--
+    If you are serving your web app in a path other than the root, change the
+    href value below to reflect the base path you are serving from.
+
+    The path provided below has to start and end with a slash "/" in order for
+    it to work correctly.
+
+    For more details:
+    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+
+    This is a placeholder for base href that will be replaced by the value of
+    the `--base-href` argument provided to `flutter build`.
+  -->
+  <base href="/">
+
+  <meta charset="UTF-8">
+  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
+  <meta name="description" content="南京理工大学课程表">
+  <meta name="theme-color" content="#7F6DCE">
+
+  <!-- 分享卡片：微信 / QQ / 微博等抓取 og:* 生成标题与缩略图。
+       缺这些标签时，部分平台会回退到奇怪的默认名（如 "my flutter app"），
+       所以这里显式写死，避免分享出去的标题不对。 -->
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="梨课程">
+  <meta property="og:title" content="梨课程 · 南京理工大学课程表">
+  <meta property="og:description" content="南京理工大学课程表：登录教务系统同步课表、成绩、考试安排与校园余额。">
+  <meta property="og:image" content="icons/Icon-512.png">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="梨课程 · 南京理工大学课程表">
+  <meta name="twitter:description" content="南京理工大学课程表：登录教务系统同步课表、成绩、考试安排与校园余额。">
+  <meta name="twitter:image" content="icons/Icon-512.png">
+
+  <!-- Web 端字体不打包进产物，缺字形时引擎会从这里按需下载（见 flutter_bootstrap.js）；
+       提前握手可以省掉首个字体请求的 DNS/TCP/TLS 往返。 -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- iOS meta tags & icons -->
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="apple-mobile-web-app-title" content="梨课程">
+  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="favicon.png"/>
+
+  <title>梨课程</title>
+  <link rel="manifest" href="manifest.json">
+
+  <!--
+    首屏加载提示：Flutter Web 的产物（尤其 CanvasKit）有几 MB，下载 + 引擎初始化
+    期间页面是全白的，容易被当成"打不开"。这里用纯 HTML/CSS 先画一张加载卡片，
+    首帧渲染（flutter-first-frame）后淡出移除——没有任何额外请求。
+  -->
+  <style>
+    #loading {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 14px;
+      background: #F6F4FF;
+      color: #4A3F7A;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC',
+        'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
+      transition: opacity .28s ease;
+    }
+    #loading.is-hidden { opacity: 0; pointer-events: none; }
+    #loading-logo {
+      width: 72px;
+      height: 72px;
+      border-radius: 20px;
+      box-shadow: 0 10px 24px rgba(127, 109, 206, .28);
+    }
+    #loading-title { font-size: 17px; font-weight: 700; letter-spacing: .4px; }
+    #loading-version { font-size: 12px; font-weight: 500; opacity: .6; }
+    #loading-text { font-size: 13.5px; opacity: .78; }
+    #loading-bar {
+      width: 168px;
+      height: 4px;
+      border-radius: 999px;
+      background: #E4DEFA;
+      overflow: hidden;
+    }
+    #loading-bar::after {
+      content: '';
+      display: block;
+      width: 40%;
+      height: 100%;
+      border-radius: 999px;
+      background: #7F6DCE;
+      animation: loading-slide 1.1s ease-in-out infinite;
+    }
+    @keyframes loading-slide {
+      0% { transform: translateX(-105%); }
+      100% { transform: translateX(255%); }
+    }
+    #loading-retry {
+      margin-top: 2px;
+      padding: 9px 20px;
+      border: none;
+      border-radius: 999px;
+      background: #7F6DCE;
+      color: #fff;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    @media (prefers-color-scheme: dark) {
+      #loading { background: #1B1826; color: #D9D2F5; }
+      #loading-bar { background: #332C47; }
+    }
+  </style>
+</head>
+<body>
+  <div id="loading" role="status" aria-live="polite">
+    <img id="loading-logo" src="icons/Icon-192.png" alt="梨课程">
+    <div id="loading-title">梨课程网页版<span id="loading-version"></span></div>
+    <div id="loading-text">正在加载…</div>
+    <div id="loading-bar"></div>
+    <button id="loading-retry" hidden>重新加载</button>
+  </div>
+
+  <script>
+    (function () {
+      var overlay = document.getElementById('loading');
+      var done = false;
+
+      function hide() {
+        if (done || !overlay) return;
+        done = true;
+        overlay.classList.add('is-hidden');
+        // 淡出结束后再真正移出布局，避免挡住首帧的点击。
+        setTimeout(function () {
+          if (overlay) overlay.style.display = 'none';
+        }, 320);
+      }
+
+      // Flutter 画完第一帧就会广播这个事件：此时界面已经可用，撤掉提示层。
+      window.addEventListener('flutter-first-frame', hide);
+      window.addEventListener('pagehide', hide);
+
+      // 兜底：引擎迟迟起不来（网络不通、产物没更新完）时给一个出口，
+      // 而不是让用户对着"正在加载…"一直等。
+      setTimeout(function () {
+        if (done || !overlay) return;
+        var text = document.getElementById('loading-text');
+        if (text) text.textContent = '加载时间较长，可能是网络不通或版本正在更新…';
+        var retry = document.getElementById('loading-retry');
+        if (retry) {
+          retry.hidden = false;
+          retry.onclick = function () {
+            window.location.reload();
+          };
+        }
+      }, 25000);
+
+      // 版本号写在 manifest.json 里（发版只改那一处），读不到就不显示。
+      fetch('manifest.json')
+        .then(function (response) { return response.json(); })
+        .then(function (manifest) {
+          var slot = document.getElementById('loading-version');
+          if (slot && manifest && manifest.version) {
+            slot.textContent = ' ' + manifest.version;
+          }
+        })
+        .catch(function () { /* 读不到版本号不影响加载 */ });
+    })();
+  </script>
+
+  <!--
+    You can customize the "flutter_bootstrap.js" script.
+    This is useful to provide a custom configuration to the Flutter loader
+    or to give the user feedback during the initialization process.
+
+    For more details:
+    * https://docs.flutter.dev/platform-integration/web/initialization
+  -->
+  <script src="flutter_bootstrap.js" async></script>
+</body>
+</html>
