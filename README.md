@@ -4,7 +4,7 @@
 桌面端在私有工程 `Yuriel404/pear_schedule` 中维护，本仓库只保存构建产物，
 方便站点托管、回滚与版本追溯。
 
-- 在线访问：<https://course.simpleclover.top>
+- 在线访问：<https://course.njust.store>
 - 部署分支：`main`（站点使用该分支的最新静态文件）
 - 当前产物：`1.1.8preview`（构建号 10113，预览版）
 
